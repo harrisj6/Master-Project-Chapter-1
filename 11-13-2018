@@ -1,0 +1,134 @@
+#Title: mean.cover.BF.R
+#Author: Jacob Harris
+#Date Created: 11/01/2018... Back in Berkeley/San Francisco!
+#Last Revised: 11/13/2018
+#Purpose: Organize data from your Plant Community Data (about 9 CSV files right now) in such a way that you can do succint data analysis on them. Be more consice than Tim Botting.
+#source("mean.cover.BF.R")
+
+
+#set the working directory
+setwd("D:/Thesis project/Thesis project/Thesis_Fresh_2018")
+library(mosaic)
+library(usingR)
+library(Hmisc)
+
+#load the data
+BFAC <- read.table("tbl_BFunAvgCover.csv", header=T, sep = ",")
+
+#set subsets, first between Atqasuk and Barrow
+AG <- subset(BFAC, strSite=="AG")
+BG <- subset(BFAC, strSite=="BG")
+
+#set subsets, now for veg types
+##AG
+AG.GRAM <- subset(AG, strBFun=="GRAM")
+AG.FORB <- subset(AG, strBFun=="FORB")
+AG.DSHR <- subset(AG, strBFun=="DSHR")
+AG.ESHR <- subset(AG, strBFun=="ESHR")
+AG.LICH <- subset(AG, strBFun=="LICH")
+AG.BRYO <- subset(AG, strBFun=="BRYO")
+AG.LITT <- subset(AG, strBFun=="LITT")
+AG.STAD <- subset(AG, strBFun=="STAD")
+
+##BG
+BG.GRAM <- subset(BG, strBFun=="GRAM")
+BG.FORB <- subset(BG, strBFun=="FORB")
+BG.DSHR <- subset(BG, strBFun=="DSHR")
+BG.ESHR <- subset(BG, strBFun=="ESHR")
+BG.LICH <- subset(BG, strBFun=="LICH")
+BG.BRYO <- subset(BG, strBFun=="BRYO")
+BG.LITT <- subset(BG, strBFun=="LITT")
+BG.STAD <- subset(BG, strBFun=="STAD")
+
+#Find Average (AKA, mean) cover values per year
+##AG
+AG.GRAM.MC <- aggregate(Cover ~ numYear, data=AG.GRAM, mean)
+AG.FORB.MC <- aggregate(Cover ~ numYear, data=AG.FORB, mean)
+AG.DSHR.MC <- aggregate(Cover ~ numYear, data=AG.DSHR, mean)
+AG.ESHR.MC <- aggregate(Cover ~ numYear, data=AG.ESHR, mean)
+AG.LICH.MC <- aggregate(Cover ~ numYear, data=AG.LICH, mean)
+AG.BRYO.MC <- aggregate(Cover ~ numYear, data=AG.BRYO, mean)
+AG.LITT.MC <- aggregate(Cover ~ numYear, data=AG.LITT, mean)
+AG.STAD.MC <- aggregate(Cover ~ numYear, data=AG.STAD, mean)
+
+##BG
+BG.GRAM.MC <- aggregate(Cover ~ numYear, data=BG.GRAM, mean)
+BG.FORB.MC <- aggregate(Cover ~ numYear, data=BG.FORB, mean)
+BG.DSHR.MC <- aggregate(Cover ~ numYear, data=BG.DSHR, mean)
+BG.ESHR.MC <- aggregate(Cover ~ numYear, data=BG.ESHR, mean)
+BG.LICH.MC <- aggregate(Cover ~ numYear, data=BG.LICH, mean)
+BG.BRYO.MC <- aggregate(Cover ~ numYear, data=BG.BRYO, mean)
+BG.LITT.MC <- aggregate(Cover ~ numYear, data=BG.LITT, mean)
+BG.STAD.MC <- aggregate(Cover ~ numYear, data=BG.STAD, mean)
+
+#tabulate Average cover values per year.
+##AG
+AG.MC.BF.tbl <- data.frame()
+Year <- AG.GRAM.MC$numYear
+GRAM.Cover <- AG.GRAM.MC$Cover
+FORB.Cover <- AG.FORB.MC$Cover
+DSHR.Cover <- AG.DSHR.MC$Cover
+ESHR.Cover <- AG.ESHR.MC$Cover
+LICH.Cover <- AG.LICH.MC$Cover
+BRYO.Cover <- AG.BRYO.MC$Cover
+LITT.Cover <- AG.LITT.MC$Cover
+STAD.Cover <- AG.STAD.MC$Cover
+
+AG.MC.BF.tbl <-data.frame(Year, GRAM.Cover, FORB.Cover, DSHR.Cover, ESHR.Cover, LICH.Cover, BRYO.Cover, LITT.Cover, STAD.Cover)
+
+write.table(AG.MC.BF.tbl, file = "AG.MC.BF.tbl.csv", sep =",", col.names = T, row.names = F)
+
+##BG
+BG.MC.BF.tbl <- data.frame()
+Year <- BG.GRAM.MC$numYear
+GRAM.Cover <- BG.GRAM.MC$Cover
+FORB.Cover <- BG.FORB.MC$Cover
+DSHR.Cover <- BG.DSHR.MC$Cover
+ESHR.Cover <- BG.ESHR.MC$Cover
+LICH.Cover <- BG.LICH.MC$Cover
+BRYO.Cover <- BG.BRYO.MC$Cover
+LITT.Cover <- BG.LITT.MC$Cover
+STAD.Cover <- BG.STAD.MC$Cover
+
+BG.MC.BF.tbl <- data.frame(Year, GRAM.Cover, FORB.Cover, DSHR.Cover, ESHR.Cover, LICH.Cover, BRYO.Cover, LITT.Cover, STAD.Cover)
+
+write.table(BG.MC.BF.tbl, file = "BG.MC.BF.tbl.csv", sep =",", col.names = T, row.names = F)
+
+#Start some Shapiro-Wilks testing
+##AG
+# JD = Just Data (as in not year)
+AG.MC.BF.tbl.JD <- AG.MC.BF.tbl[-1]
+AG.MC.BF.tbl.JD <- as.list(AG.MC.BF.tbl.JD)
+# Create a list of names for the data factor label
+data.names <- c("GRAM", "FORB", "DSHR", "ESHR", "LICH", "BRYO", "LITT", "STAD")
+site.names <- rep.int("AG", 8)
+AG.BFun.Shapiro.Output <- data.frame()
+for(i in 1:length(AG.MC.BF.tbl.JD)) {
+  x <- (AG.MC.BF.tbl.JD[[i]])
+  x <- shapiro.test(x)
+  Statistic <- x$statistic
+  P.value <- x$p.value
+  #Method <- x$method
+  data.name <- data.names[i]
+  site.name <- site.names[i]
+  #Shapiro.Results <- data.frame(Statistic, P.value)
+  AG.BFun.Shapiro.Output <- rbind(AG.BFun.Shapiro.Output, data.frame(site.name, data.name, Statistic, P.value))
+}
+
+#Do ANOVA to look for coverage differences between years.
+##AG
+Years <- c(2010, 2011:2018)
+data.names <- c("Year", "GRAM", "FORB", "DSHR", "ESHR", "LICH", "BRYO", "LITT", "STAD")
+site.names <- rep.int("AG", 9)
+AG.BFun.Anova.Output <- data.frame()
+for(i in 1:length(AG.MC.BF.tbl)) {
+  x <- anova(lm(AG.MC.BF.tbl$Year ~ AG.MC.BF.tbl[[i]]))
+  data.name <- data.names[i]
+  site.name <- site.names[i]
+  DF <- x$Df
+  Mean.squares <- x$`Mean Sq`
+  Sum.squares <- x$`Sum Sq`
+  F.value <- x$`F value`
+  P.value <- x$`Pr(>F)`
+  AG.BFun.Anova.Output <- rbind(AG.BFun.Anova.Output, data.frame(site.name, data.name, DF, Mean.squares, Sum.squares, F.value, P.value))
+}
