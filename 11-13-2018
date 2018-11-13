@@ -1,0 +1,78 @@
+#Title: mean.cover.NF.R
+#Author: Jacob Harris
+#Date Created: 11/09/2018
+#Last Revised: 11/013/2018
+#Purpose: Organize data from your Plant Community Data (about 9 CSV files right now) in such a way that you can do succint data analysis on them. Be more consice than Tim Botting.
+#Contains mean cover, shaprio test, ANOVA
+#source("mean.cover.NF.R")
+
+#set the working directory
+setwd("D:/Thesis project/Thesis project/Thesis_Fresh_2018")
+
+library(mosaic)
+#library(usingR)
+library(Hmisc)
+
+#load the data
+NFAC <- read.table("tbl_NFunCover.csv", header=T, sep = ",")
+
+#set subsets, first between Atqasuk and Barrow
+AG <- subset(NFAC, strSite=="AG")
+BG <- subset(NFAC, strSite=="BG")
+
+#break the datasets into discrete dataframes with the split function... this generates a list of dataframes based on a factor (in this case, strNFun).
+
+AG.list <- split(AG, AG$strNFun)
+BG.list <- split(BG, AG$strNFun)
+
+#check to see if there are "0" rows for the strNFun factor in this data subset
+for(i in 1:length(AG.list)) {
+  print(levels(AG.list[[i]]$strNFun))
+  print(length(AG.list[[i]]$strNFun))
+}
+#by counting we can see that CUFO, MAFO, and UNBR are not in AG; we should drop them from the subset.
+#This drops the dataframes from our list which have 0 rows.
+### Did not work! It says it has 18 data frames in the list but the loop did not work.
+AG.list <- AG.list[sapply(AG.list, function(x) dim(x)[1]) > 0]
+
+#aggregate(Cover ~ numYear, data=AG.list[[1]], mean)
+
+
+# #old non-working
+# AG.list.MC <- data.frame()
+# for(i in 1:length(AG.list)) {
+#   x <- aggregate(Cover ~ numYear, data=AG.list.clean[[i]], mean)
+#   #numYear <- x$numYear
+#   #Cover <- x$Cover
+#   AG.list.MC[i] <- rbind(AG.list.MC, x) 
+# }
+# 
+# #doesn't work
+# AG.list.MC <- data.frame()
+# for(i in length(AG.list)) {
+#   x <- mean(AG.list[[i]][7] ~ AG.list[[i]][2])
+#   x[is.na(x)] <- NA
+#   AG.list.MC[i] <- rbind(AG.list.MC, x) 
+# }
+
+AG.list.MC <- list()
+for(i in 1:length(AG.list)) {
+  x <- aggregate(Cover ~ numYear, data=AG.list[[i]], mean)
+  AG.list.MC[[i]] <- x
+}
+
+#do Shapiro testing for normality
+AG.NFun.shapiro.output <- data.frame()
+for(i in 1:length(AG.list)) {
+  data.name <- names(AG.list[i])
+  site.name <- "AG"
+  x <- as.numeric(as.matrix(AG.list[[i]][7]))
+  #x <- as.numeric(as.matrix(x))
+  Shapiro.Results <- shapiro.test(x)
+  Statistic <- Shapiro.Results$statistic
+  P.value <- Shapiro.Results$p.value
+  AG.NFun.shapiro.output <- rbind(AG.NFun.shapiro.output, data.frame(site.name, data.name, Statistic, P.value))
+}
+
+  
+#Now, we have a mean cover per Narrow Functional Group per year.
